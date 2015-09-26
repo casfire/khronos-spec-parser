@@ -15,6 +15,7 @@ public class Gen {
 	public final Set<String> types;
 	public final Set<String> enums;
 	public final Set<String> commands;
+	public final Set<String> defines;
 	
 	public Gen(String api, String version, String profile) {
 		this.api      = api;
@@ -23,6 +24,7 @@ public class Gen {
 		this.types    = new HashSet<String>();
 		this.enums    = new HashSet<String>();
 		this.commands = new HashSet<String>();
+		this.defines  = new HashSet<String>();
 	}
 	
 	public void push(Require r) {
@@ -37,10 +39,15 @@ public class Gen {
 		for (String s : r.commands) commands.remove(s);
 	}
 	
-	public void push(Gen a) {
-		types.addAll(a.types);
-		enums.addAll(a.enums);
-		commands.addAll(a.commands);
+	public void addDefine(String def) {
+		defines.add(def);
+	}
+	
+	public String[] getDefines() {
+		String[] d = new String[defines.size()];
+		defines.toArray(d);
+		Arrays.sort(d);
+		return d;
 	}
 	
 	public String name() {

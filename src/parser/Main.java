@@ -85,6 +85,7 @@ public class Main {
 				(profile == null || profile.isEmpty() || profile.equals(gen.profile)) &&
 				gen.version.compareTo(version) >= 0
 			) {
+				gen.addDefine(f.name);
 				if (r instanceof Require) gen.push((Require) r);
 				if (r instanceof Remove ) gen.push((Remove)  r);
 			}
@@ -182,6 +183,13 @@ public class Main {
 			found = true;
 		}
 		if (found) hpp.write("\n");
+		
+		found = false;
+		for (String d : gen.getDefines()) {
+			hpp.write("#define " + d + " 1\n");
+			found = true;
+		}
+		if (found) hpp.write("\n");	
 		
 		hpp.write("namespace " + gen.api.toUpperCase() + " {\n");
 		hpp.write("\t\n");
