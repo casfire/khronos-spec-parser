@@ -6,7 +6,7 @@ import java.util.List;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
-public class RInterface {
+public abstract class RInterface {
 	
 	public final String profile;
 	public final String comment;
