@@ -2,8 +2,10 @@ package parser;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 
 import parser.registry.*;
@@ -127,6 +129,11 @@ public class Generator {
 		String ind = new String(new char[indent]).replace('\0', '\t');
 		out.write(ind + "#endif\n");
 		return true;
+	}
+	
+	public static void notice(Writer out) throws IOException {
+		String date = new SimpleDateFormat("yyyy-MM-dd HH:mm").format(new Date());
+		out.write("/* Generated " + date + " by Casfire Khronos Specification Parser - admin@casfire.com */\n");
 	}
 	
 }

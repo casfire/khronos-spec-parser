@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -19,7 +20,7 @@ import parser.registry.Type;
 public class Main {
 	
 	public static void main(String args[]) throws Exception {
-		System.out.println("Khronos XML API Registry parser.");
+		System.out.println("Casfire Khronos XML API Registry parser.");
 		
 		if (!new File("gen").exists()) {
 			System.out.println("Creating gen/ directory.");
@@ -57,6 +58,7 @@ public class Main {
 		String ns = namespace.toLowerCase();
 		String NS = namespace.toUpperCase();
 		
+		Generator.notice(hpp);
 		hpp.write("#ifndef _" + filename.toUpperCase() + "_HPP_\n");
 		hpp.write("#define _" + filename.toUpperCase() + "_HPP_\n");
 		hpp.write("\n");
@@ -90,6 +92,7 @@ public class Main {
 		String ns = namespace.toLowerCase();
 		String NS = namespace.toUpperCase();
 		
+		Generator.notice(cpp);
 		cpp.write("#include \"" + filename + ".hpp\"\n");
 		cpp.write("\n");
 		cpp.write("namespace " + NS + " {\n");
@@ -123,6 +126,7 @@ public class Main {
 		String ns = namespace.toLowerCase();
 		String NS = namespace.toUpperCase();
 		
+		Generator.notice(hpp);
 		hpp.write("#ifndef _" + filename.toUpperCase() + "_HPP_\n");
 		hpp.write("#define _" + filename.toUpperCase() + "_HPP_\n");
 		hpp.write("\n");
@@ -156,30 +160,41 @@ public class Main {
 		
 		Map<Enum,    Set<String>> eProtect = new HashMap<Enum,    Set<String>>();
 		Map<Command, Set<String>> cProtect = new HashMap<Command, Set<String>>();
+		Set<String> last;
 		
 		for (Generator gen : extensions) {
 			hpp.write("\t#ifdef " + gen.protect + "\n");
 			hpp.write("\textern bool ext_" + gen.protect + ";\n");
 			
+			last = Collections.emptySet();
 			if (!gen.enums.isEmpty()) hpp.write("\tenum {\n");
 			for (Enum e : gen.enums) {
 				Set<String> curr = eProtect.get(e);
 				if (curr == null) eProtect.put(e, curr = new LinkedHashSet<String>());
-				gen.protectTop(hpp, 2, curr);
+				if (!last.equals(curr)) {
+					gen.protectBottom(hpp, 2, last);
+					gen.protectTop(hpp, 2, curr);
+					last = new LinkedHashSet<String>(curr);
+				}
 				hpp.write("\t\t" + e.name + " = " + e.value + (e.type == null ? "" : e.type) + ",\n");
-				gen.protectBottom(hpp, 2, curr);
 				curr.add(gen.protect);
 			}
+			gen.protectBottom(hpp, 2, last);
 			if (!gen.enums.isEmpty()) hpp.write("\t};\n");
 			
+			last = Collections.emptySet();
 			for (Command c : gen.commands) {
 				Set<String> curr = cProtect.get(c);
 				if (curr == null) cProtect.put(c, curr = new LinkedHashSet<String>());
-				gen.protectTop(hpp, 1, curr);
+				if (!last.equals(curr)) {
+					gen.protectBottom(hpp, 1, last);
+					gen.protectTop(hpp, 1, curr);
+					last = new LinkedHashSet<String>(curr);
+				}
 				gen.hppCommand(hpp, "\t", c);
-				gen.protectBottom(hpp, 1, curr);
 				curr.add(gen.protect);
 			}
+			gen.protectBottom(hpp, 1, last);
 			
 			hpp.write("\t#endif // " + gen.protect + "\n");
 			hpp.write("\t\n");
@@ -204,6 +219,7 @@ public class Main {
 		String ns = namespace.toLowerCase();
 		String NS = namespace.toUpperCase();
 		
+		Generator.notice(cpp);
 		cpp.write("#include \"" + filename + ".hpp\"\n");
 		cpp.write("\n");
 		cpp.write("namespace " + NS + " {\n");
@@ -215,15 +231,19 @@ public class Main {
 			cpp.write("\t#ifdef " + gen.protect + "\n");
 			cpp.write("\tbool ext_" + gen.protect + " = false;\n");
 			
+			Set<String> last = Collections.emptySet();
 			for (Command c : gen.commands) {
 				Set<String> curr = cProtect.get(c);
 				if (curr == null) cProtect.put(c, curr = new LinkedHashSet<String>());
-				gen.protectTop(cpp, 1, curr);
+				if (!last.equals(curr)) {
+					gen.protectBottom(cpp, 1, last);
+					gen.protectTop(cpp, 1, curr);
+					last = new LinkedHashSet<String>(curr);
+				}
 				gen.cppCommand(cpp, "\t", c);
-				gen.protectBottom(cpp, 1, curr);
 				curr.add(gen.protect);
 			}
-			
+			gen.protectBottom(cpp, 1, last);
 			cpp.write("\t#endif // " + gen.protect + "\n");
 		}
 		cpp.write("\t\n");
