@@ -74,6 +74,7 @@ public class Main {
 		
 		hpp.write("\ttypedef void* (*" + NS + "FunctionLoader)(const char*);\n");
 		hpp.write("\textern bool " + ns + "LoadFunctions(const " + NS + "FunctionLoader &load);\n");
+		hpp.write("\textern bool " + ns + "LoadFunctions();\n");
 		hpp.write("\ttemplate <typename P> inline bool " + ns + "LoadFunctions(const P &proc) {\n");
 		hpp.write("\t\treturn " + ns + "LoadFunctions(reinterpret_cast<" + NS + "FunctionLoader>(proc));\n");
 		hpp.write("\t}\n");
@@ -95,10 +96,13 @@ public class Main {
 		Generator.notice(cpp);
 		cpp.write("#include \"" + filename + ".hpp\"\n");
 		cpp.write("\n");
+		Generator.platformDefines(cpp);
 		cpp.write("namespace " + NS + " {\n");
 		cpp.write("\t\n");
 		
 		if (gen.cppCommands(cpp, 1)) cpp.write("\t\n");
+		
+		Generator.platformLoaderSrc(cpp, NS, ns);
 		
 		cpp.write("\ttemplate <typename Fn>\n");
 		cpp.write("\tinline int Load(Fn &f, const " + NS + "FunctionLoader &load, const char* name) {\n");
@@ -201,6 +205,7 @@ public class Main {
 		}
 		
 		hpp.write("\textern void " + ns + "LoadExtensions(const " + NS + "FunctionLoader &load);\n");
+		hpp.write("\textern void " + ns + "LoadExtensions();\n");
 		hpp.write("\ttemplate <typename P> inline void " + ns + "LoadExtensions(const P &proc) {\n");
 		hpp.write("\t\t" + ns + "LoadExtensions(reinterpret_cast<" + NS + "FunctionLoader>(proc));\n");
 		hpp.write("\t}\n");
@@ -222,6 +227,7 @@ public class Main {
 		Generator.notice(cpp);
 		cpp.write("#include \"" + filename + ".hpp\"\n");
 		cpp.write("\n");
+		Generator.platformDefines(cpp);
 		cpp.write("namespace " + NS + " {\n");
 		cpp.write("\t\n");
 		
@@ -247,6 +253,8 @@ public class Main {
 			cpp.write("\t#endif // " + gen.protect + "\n");
 		}
 		cpp.write("\t\n");
+		
+		Generator.platformLoaderExt(cpp, NS, ns);
 		
 		cpp.write("\ttemplate <typename Fn>\n");
 		cpp.write("\tinline bool Load(Fn &f, const " + NS + "FunctionLoader &load, const char* name) {\n");

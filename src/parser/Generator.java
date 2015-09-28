@@ -136,4 +136,72 @@ public class Generator {
 		out.write("/* Generated " + date + " by Casfire Khronos Specification Parser - admin@casfire.com */\n");
 	}
 	
+	public static void platformDefines(Writer out) throws IOException {
+		out.write("#ifdef _WIN32\n");
+		out.write("\t#define WIN32_LEAN_AND_MEAN 1\n");
+		out.write("\t#include <windows.h>\n");
+		out.write("#else\n");
+		out.write("\t#include <dlfcn.h>\n");
+		out.write("\t#define HMODULE void*\n");
+		out.write("\t#define GetProcAddress dlsym\n");
+		out.write("\t#define FreeLibrary dlclose\n");
+		out.write("#endif\n");
+		out.write("\n");
+	}
+	
+	public static void platformLoaderExt(Writer out, String NS, String ns) throws IOException {
+		out.write("\tHMODULE elib = nullptr; " + NS + "FunctionLoader ewgl = nullptr;\n");
+		out.write("\tvoid* eGetProcAddress(const char* name) {\n");
+		out.write("\t\tvoid* ret = ewgl == nullptr ? nullptr : ewgl(name);\n");
+		out.write("\t\treturn ret == nullptr ? reinterpret_cast<void*>(GetProcAddress(elib, name)) : ret;\n");
+		out.write("\t}\n");
+		out.write("\tvoid " + ns + "LoadExtensions() {\n");
+		out.write("\t\t#if defined(_WIN32)\n");
+		out.write("\t\t\telib = LoadLibraryA(\"opengl32.dll\"); if (elib == nullptr) return;\n");
+		out.write("\t\t\tewgl = reinterpret_cast<" + NS + "FunctionLoader>(GetProcAddress(elib, \"wglGetProcAddress\"));\n");
+		out.write("\t\t#elif defined(__APPLE__)\n");
+		out.write("\t\t\telib = dlopen(\"../Frameworks/OpenGL.framework/OpenGL\", RTLD_NOW | RTLD_GLOBAL);\n");
+		out.write("\t\t\tif (elib == nullptr) elib = dlopen(\"/Library/Frameworks/OpenGL.framework/OpenGL\", RTLD_NOW | RTLD_GLOBAL);\n");
+		out.write("\t\t\tif (elib == nullptr) elib = dlopen(\"/System/Library/Frameworks/OpenGL.framework/OpenGL\", RTLD_NOW | RTLD_GLOBAL);\n");
+		out.write("\t\t\tif (elib == nullptr) elib = dlopen(\"/System/Library/Frameworks/OpenGL.framework/Versions/Current/OpenGL\", RTLD_NOW | RTLD_GLOBAL);\n");
+		out.write("\t\t\tif (elib == nullptr) return;\n");
+		out.write("\t\t#else\n");
+		out.write("\t\t\telib = dlopen(\"libGL.so.1\", RTLD_NOW | RTLD_GLOBAL);\n");
+		out.write("\t\t\tif (elib == nullptr) elib = dlopen(\"libGL.so\", RTLD_NOW | RTLD_GLOBAL);\n");
+		out.write("\t\t\tif (elib == nullptr) return;\n");
+		out.write("\t\t\tewgl = reinterpret_cast<" + NS + "FunctionLoader>(dlsym(elib, \"glXGetProcAddressARB\"));\n");
+		out.write("\t\t#endif\n");
+		out.write("\t\t" + ns + "LoadFunctions(&eGetProcAddress);\n");
+		out.write("\t\tFreeLibrary(elib); elib = nullptr; ewgl = nullptr;\n");
+		out.write("\t}\n");
+	}
+	
+	public static void platformLoaderSrc(Writer out, String NS, String ns) throws IOException {
+		out.write("\tHMODULE slib = nullptr; " + NS + "FunctionLoader swgl = nullptr;\n");
+		out.write("\tvoid* sGetProcAddress(const char* name) {\n");
+		out.write("\t\tvoid* ret = swgl == nullptr ? nullptr : swgl(name);\n");
+		out.write("\t\treturn ret == nullptr ? reinterpret_cast<void*>(GetProcAddress(slib, name)) : ret;\n");
+		out.write("\t}\n");
+		out.write("\tbool " + ns + "LoadFunctions() {\n");
+		out.write("\t\t#if defined(_WIN32)\n");
+		out.write("\t\t\tslib = LoadLibraryA(\"opengl32.dll\"); if (slib == nullptr) return false;\n");
+		out.write("\t\t\tswgl = reinterpret_cast<" + NS + "FunctionLoader>(GetProcAddress(slib, \"wglGetProcAddress\"));\n");
+		out.write("\t\t#elif defined(__APPLE__)\n");
+		out.write("\t\t\tslib = dlopen(\"../Frameworks/OpenGL.framework/OpenGL\", RTLD_NOW | RTLD_GLOBAL);\n");
+		out.write("\t\t\tif (slib == nullptr) slib = dlopen(\"/Library/Frameworks/OpenGL.framework/OpenGL\", RTLD_NOW | RTLD_GLOBAL);\n");
+		out.write("\t\t\tif (slib == nullptr) slib = dlopen(\"/System/Library/Frameworks/OpenGL.framework/OpenGL\", RTLD_NOW | RTLD_GLOBAL);\n");
+		out.write("\t\t\tif (slib == nullptr) slib = dlopen(\"/System/Library/Frameworks/OpenGL.framework/Versions/Current/OpenGL\", RTLD_NOW | RTLD_GLOBAL);\n");
+		out.write("\t\t\tif (slib == nullptr) return false;\n");
+		out.write("\t\t#else\n");
+		out.write("\t\t\tslib = dlopen(\"libGL.so.1\", RTLD_NOW | RTLD_GLOBAL);\n");
+		out.write("\t\t\tif (slib == nullptr) slib = dlopen(\"libGL.so\", RTLD_NOW | RTLD_GLOBAL);\n");
+		out.write("\t\t\tif (slib == nullptr) return false;\n");
+		out.write("\t\t\tswgl = reinterpret_cast<" + NS + "FunctionLoader>(dlsym(slib, \"glXGetProcAddressARB\"));\n");
+		out.write("\t\t#endif\n");
+		out.write("\t\tbool status = " + ns + "LoadFunctions(&sGetProcAddress);\n");
+		out.write("\t\tFreeLibrary(slib); slib = nullptr; swgl = nullptr;\n");
+		out.write("\t\treturn status;\n");
+		out.write("\t}\n");
+	}
+	
 }
