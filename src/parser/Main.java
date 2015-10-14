@@ -119,7 +119,7 @@ public class Main {
 		cpp.write("\t}\n");
 		cpp.write("\t\n");
 		
-		cpp.write("} //" + NS + "\n");
+		cpp.write("} // " + NS + "\n");
 		cpp.close();
 	}
 	

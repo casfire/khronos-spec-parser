@@ -171,7 +171,7 @@ public class Generator {
 		out.write("\t\t\tif (elib == nullptr) return;\n");
 		out.write("\t\t\tewgl = reinterpret_cast<" + NS + "FunctionLoader>(dlsym(elib, \"glXGetProcAddressARB\"));\n");
 		out.write("\t\t#endif\n");
-		out.write("\t\t" + ns + "LoadFunctions(&eGetProcAddress);\n");
+		out.write("\t\t" + ns + "LoadExtensions(&eGetProcAddress);\n");
 		out.write("\t\tFreeLibrary(elib); elib = nullptr; ewgl = nullptr;\n");
 		out.write("\t}\n");
 	}
